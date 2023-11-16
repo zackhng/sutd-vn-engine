@@ -18,4 +18,6 @@ poetry run python -m sutd_vn_engine
 
 ## Engine Format
 
-TODO: A text format for parsing story & story branches. Does PyGame have a standard format we can implement?
+TODO: A text format for parsing story & story branches. Does renpy have a standard format we can implement?
+
+NVM renpy format is basically a mini-programming language. I would need to write a interpreter. I think I will come up with my own format.
