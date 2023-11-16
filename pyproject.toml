@@ -6,8 +6,16 @@ authors = ["John-Henry Lim <42513874+Interpause@users.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.11"
+python = "3.11.*"
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.5"
+
+[tool.ruff.lint]
+select = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [build-system]
 requires = ["poetry-core"]
