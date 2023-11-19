@@ -1,91 +1,109 @@
-"""Main entrypoint."""
-
 import asyncio
-import base64
-import json
-import logging
-import tkinter as tk
-from calendar import c
-from tempfile import NamedTemporaryFile
-from urllib import request
+from tkinter import *
+from tkinter.ttk import *
 
-log = logging.getLogger(__name__)
-
-url = "http://robowsl.home.arpa:6000/sdapi/v1/txt2img"
+# https://docs.python.org/3/library/tk.html
+# https://docs.python.org/3/library/tkinter.ttk.html
+FPS_60 = 0.015
 
 
-def post_json(url, obj):
-    """Post object to url as json."""
-    data = json.dumps(obj).encode("utf-8")
-    req = request.Request(
-        url,
-        data=data,
-        method="POST",
-        headers={
-            "Content-Type": "application/json; charset=utf-8",
-            "Content-Length": len(data),
-        },
-    )
-    return asyncio.to_thread(request.urlopen, req)
+def create_input_function(label: Label, inputbox: Text):
+    """Emulates input function using GUI elements."""
+    triggered = False
+
+    def _trigger(*_, **__):
+        nonlocal triggered
+        triggered = True
+
+    inputbox.bind("<Return>", _trigger)
+
+    async def _input(text):
+        nonlocal triggered
+        label.configure(text=text)
+        while not triggered:
+            await asyncio.sleep(FPS_60)
+        triggered = False
+        prompt = inputbox.get("1.0", "end-2c")
+        inputbox.delete("1.0", "end")
+        return prompt
+
+    return _input
 
 
-async def get_image(prompt):
-    """Get image from text."""
-    obj = {"prompt": prompt}
-    try:
-        res = await post_json(url, obj)
-    except asyncio.CancelledError:
-        log.warning(f"cancelled: {prompt}")
-        return None
+def create_print_function(label: Label):
+    def _print(text):
+        label.configure(text=text)
 
-    data = json.loads(res.read())
-    b64_img = data["images"][0]
-    raw_img = base64.decodebytes(b64_img.encode("utf-8"))
-    with NamedTemporaryFile(delete=False, suffix=".png") as f:
-        f.write(raw_img)
-        return f.name
+    return _print
+
+
+async def loop(app):
+    """GUI Loop."""
+    while True:
+        app.update()
+        await asyncio.sleep(FPS_60)
+
+
+def create_gui(app):
+    replybox = Label(app)
+    textbox = Text(app)
+    label = Label(app)
+    replybox.pack()
+    label.pack()
+    textbox.pack()
+
+    ginput = create_input_function(label, textbox)
+    gprint = create_print_function(replybox)
+
+    class _G:
+        def __init__(self):
+            self.input = ginput
+            self.print = gprint
+
+    return _G()
+
+
+USER_PREFERENCE_IS_BURGER = None
+USER_PREFERENCE_IS_GAY = False
+FLAG_CAT_OR_DOG = False
+
+
+async def scenario_food_tastes(G):
+    global USER_PREFERENCE_IS_BURGER
+    while USER_PREFERENCE_IS_BURGER is None:
+        f = await G.input("Do you like sushi? 1 = Yes, 2 = No")
+        if f == "1":
+            USER_PREFERENCE_IS_BURGER = False
+            G.print("I like sushi too!")
+        elif f == "2":
+            USER_PREFERENCE_IS_BURGER = True
+            G.print("I like sushi more")
+        else:
+            G.print("I don't understand, Do you like sushi? 1 = Yes, 2 = No")
 
 
 async def main():
     """Main entrypoint."""
-    app = tk.Tk()
-    app.title("SUTD Visual Novel")
+    app = Tk()
+    apptask = asyncio.create_task(loop(app))
+    G = create_gui(app)
 
-    cur_req_task = None
+    await scenario_food_tastes(G)
+    # await scenario_sex_preference(G)
+    # await scenario_save_kitty(G)
 
-    image_label = tk.Label(app)
-    image_label.pack()
-
-    prompt_input = tk.Text(app)
-    prompt_input.pack()
-
-    def _update_image(path):
-        log.info(f"temp path: {path}")
-        if path is None:
-            return
-        image = tk.PhotoImage(file=path)
-        image_label.image = image
-        image_label.configure(image=image)
-
-    def _send_prompt():
-        nonlocal cur_req_task
-        if cur_req_task:
-            cur_req_task.cancel()
-            cur_req_task = None
-
-        prompt = prompt_input.get("1.0", "end-1c")
-        log.info(f"prompt: {prompt}")
-        cur_req_task = asyncio.create_task(get_image(prompt))
-        cur_req_task.add_done_callback(lambda f: _update_image(f.result()))
-
-    confirm = tk.Button(app, command=_send_prompt, text="Generate")
-    confirm.pack()
-
-    while True:
-        app.update()
-        await asyncio.sleep(0.015)
+    # await scenario_conclusion(G)
+    await apptask
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
+
+"""
+f = input (" Do you like hamburger? 1 = Yes, 2 = No ")
+if f == 1 :
+    print(" I like hamburger too")
+else:
+    print(" I like sushi more")
+
+"""
