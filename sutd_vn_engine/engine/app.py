@@ -41,7 +41,7 @@ def create_input_function(chatlog: ChatLog, inputbox: Entry):
         text = str(__prompt)
         logging.info(f"Wait prompt: {text}")
         inputbox.config(state=NORMAL)
-        chatlog.add_message(text, name="", side=CENTER)
+        chatlog.add_msg(text, name="", side=CENTER)
         while not triggered:
             await asyncio.sleep(LOOP_WAIT)
         triggered = False
@@ -63,7 +63,7 @@ def create_print_function(chatlog: ChatLog):
     async def _print(*values, sep=" "):
         text = sep.join(map(str, values))
         logging.info(f"Print: {text}")
-        chatlog.add_message(text)
+        await chatlog.add_anim_msg(text)
 
     return _print
 

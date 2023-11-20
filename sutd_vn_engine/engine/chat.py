@@ -1,5 +1,6 @@
 """Chat widget."""
 
+import asyncio
 from tkinter import *
 from tkinter.ttk import *  # type: ignore
 
@@ -20,10 +21,10 @@ class ChatLog(Labelframe):
         self.colwidth = colwidth
 
         self.set_speaker("", CENTER)
-        self.init_gui()
-        self.init_style()
+        self._init_gui()
+        self._init_style()
 
-    def init_gui(self):
+    def _init_gui(self):
         """Init GUI."""
         canvas = Canvas(self, width=(self.ncols + 2) * self.colwidth)
         inner = Frame(canvas)
@@ -40,7 +41,7 @@ class ChatLog(Labelframe):
         self.inner = inner
         self.scroll = scroll
 
-    def init_style(self):
+    def _init_style(self):
         """Init style."""
         self.style = Style(self)
         common = dict(
@@ -61,24 +62,23 @@ class ChatLog(Labelframe):
             pady=(0.25 * EM, 0.5 * EM),
         )
 
-    def update_inner_size(self):
+    def _calc_msg_height(self, msgdict):
+        """Calculate height of message."""
+        widget = msgdict["widget"]
+        padinfo = widget.grid_info()["pady"]
+        pad = padinfo if isinstance(padinfo, int) else sum(padinfo)
+        return widget.winfo_reqheight() + pad
+
+    def _update_scroll(self):
         """Update size of inner canvas for scrolling."""
         height = 0
         for m in self.messages:
-            widget = m["widget"]
-            pad = widget.grid_info()["pady"]
-            height += widget.winfo_reqheight()
-            height += pad if isinstance(pad, int) else sum(pad)
+            height += m["height"]
         self.canvas.config(scrollregion=(0, 0, 0, height))
         self.canvas.yview_moveto(1)
 
-    def set_speaker(self, name=None, side=None):
-        """Set the speaker name and side."""
-        self.name = self.name if name is None else name
-        self.side = self.side if side is None else side
-
-    def add_message(self, msg, name=None, side=None):
-        """Add a message to the chat log."""
+    def _msg(self, msg, name=None, side=None):
+        """Common implementation for add_msg and add_anim_msg."""
         name = self.name if name is None else name
         side = self.side if side is None else side
         msg = f"{name}:\n{msg}" if name else msg
@@ -97,11 +97,36 @@ class ChatLog(Labelframe):
         else:
             raise ValueError(f"Side {side} not supported.")
 
-        message = Label(self.inner, text=msg, style=style, anchor=anchor)
+        textvar = StringVar(value=msg)
+        message = Label(self.inner, textvariable=textvar, style=style, anchor=anchor)
         message.grid(**self.placement, row=row, column=col)
+        height = self._calc_msg_height(dict(widget=message))
 
-        self.messages.append(dict(name=name, msg=msg, side=side, widget=message))
-        self.update_inner_size()
+        self.messages.append(
+            dict(name=name, side=side, height=height, var=textvar, widget=message)
+        )
+        self._update_scroll()
+        return textvar, msg
+
+    def add_msg(self, msg, name=None, side=None):
+        """Add a message to the chat log."""
+        self._msg(msg, name, side)
+
+    async def add_anim_msg(self, msg, name=None, side=None, delay=0.075):
+        """Add an message with typing animation to the chat log."""
+        text, msg = self._msg(msg, name, side)
+        words = msg.split(" ")
+
+        cur = ""
+        for word in words:
+            cur += f"{word} "
+            text.set(cur)
+            await asyncio.sleep(delay)
+
+    def set_speaker(self, name=None, side=None):
+        """Set the speaker name and side."""
+        self.name = self.name if name is None else name
+        self.side = self.side if side is None else side
 
 
 if __name__ == "__main__":
@@ -116,16 +141,16 @@ if __name__ == "__main__":
     chatlog = ChatLog(root)
     chatlog.pack(fill=Y, expand=True)
 
-    chatlog.add_message("This is the beginning of the conversation.")
+    chatlog.add_msg("This is the beginning of the conversation.")
 
     chatlog.set_speaker("You", RIGHT)
-    chatlog.add_message("Hello, world! Why is this being split across two lines?")
-    chatlog.add_message(LORUM)
+    chatlog.add_msg("Hello, world! Why is this being split across two lines?")
+    chatlog.add_msg(LORUM)
 
     chatlog.set_speaker("Someone Else", LEFT)
-    chatlog.add_message(LORUM)
-    chatlog.add_message(LORUM)
-    chatlog.add_message(LORUM)
+    chatlog.add_msg(LORUM)
+    chatlog.add_msg(LORUM)
+    chatlog.add_msg(LORUM)
 
     pprint(chatlog.messages)
     root.mainloop()
