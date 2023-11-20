@@ -20,7 +20,7 @@ LOOP_WAIT = 0.015
 class Controller(NamedTuple):
     """GUI controller."""
 
-    tk: Tk
+    root: Tk
     flags: Dict[str, bool]
     input: Callable[[object], Awaitable[str]]
     print: Callable[..., None]
@@ -38,19 +38,19 @@ def create_input_function(label: Label, inputbox: Entry):
         nonlocal triggered
         text = str(__prompt)
         logging.info(f"Wait prompt: {text}")
-        inputbox.configure(state="normal")
-        label.configure(text=text)
+        inputbox.config(state=NORMAL)
+        label.config(text=text)
         while not triggered:
             await asyncio.sleep(LOOP_WAIT)
         triggered = False
         reply = inputbox.get()
         inputbox.delete("0", "end")
-        inputbox.configure(state="disabled")
+        inputbox.config(state=DISABLED)
         logging.info(f"Prompt: {text}, Return: {reply}")
         return reply
 
     inputbox.bind("<Return>", _trigger)
-    inputbox.configure(state="disabled")
+    inputbox.config(state=DISABLED)
     logging.info("Input function binded.")
     return _input
 
@@ -61,23 +61,23 @@ def create_print_function(label: Label):
     def _print(*values, sep=" "):
         text = sep.join(map(str, values))
         logging.info(f"Print: {text}")
-        label.configure(text=text)
+        label.config(text=text)
 
     return _print
 
 
 def init_gui():
     """Init GUI and GUI controller."""
-    tk = Tk()
-    replybox = Label(tk)
-    textbox = Entry(tk)
-    label = Label(tk)
+    root = Tk()
+    replybox = Label(root)
+    textbox = Entry(root)
+    label = Label(root)
     replybox.pack()
     label.pack()
     textbox.pack()
 
     _G = Controller(
-        tk=tk,
+        root=root,
         flags={},
         input=create_input_function(label, textbox),
         print=create_print_function(replybox),
@@ -96,7 +96,7 @@ async def create_app():
         nonlocal running
         logging.info("GUI loop started.")
         while running:
-            _G.tk.update()
+            _G.root.update()
             await asyncio.sleep(LOOP_WAIT)
         logging.info("GUI loop stopped.")
         raise KeyboardInterrupt
@@ -106,11 +106,11 @@ async def create_app():
     def _on_quit():
         nonlocal running, loop_task
         running = False
-        _G.tk.destroy()
-        _G.tk.quit()
+        _G.root.destroy()
+        _G.root.quit()
         logging.info("App ended.")
 
-    _G.tk.protocol("WM_DELETE_WINDOW", _on_quit)
+    _G.root.protocol("WM_DELETE_WINDOW", _on_quit)
 
     try:
         yield _G

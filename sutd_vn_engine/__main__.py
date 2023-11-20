@@ -1,4 +1,5 @@
 """Main app."""
+
 import asyncio
 import logging
 
@@ -18,12 +19,7 @@ def calculate_beginning_score(flags):
 
 
 async def event_security_job(G: Controller):
-    G.print(
-        """
-Inner Monologue:
-Oh a nice job offer. Would it be nice?
-"""
-    )
+    G.print("Inner Monologue:\n" "Oh a nice job offer. Would it be nice")
     # G.show_news("job_offer.png")
     # G.show_face("sparkling_eyes.png")
     score = calculate_beginning_score(G.flags)
