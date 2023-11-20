@@ -5,7 +5,7 @@ import asyncio
 __all__ = ["LOOP_WAIT", "EM", "LORUM", "wait_coro", "make_toggle"]
 
 LOOP_WAIT = 0.015
-EM = 8  # In px.
+EM = 9  # In px.
 LORUM = (
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum at "
     "elit non orci luctus porta et sit amet turpis. Vestibulum magna velit, "

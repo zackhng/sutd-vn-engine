@@ -12,7 +12,7 @@ __all__ = ["ChatLog"]
 class ChatLog(Labelframe):
     """Chat Log GUI."""
 
-    def __init__(self, master=None, ncols=32, msgcols=18, colwidth=2 * EM):
+    def __init__(self, master=None, ncols=32, msgcols=22, colwidth=3 * EM):
         """Constructor."""
         super(ChatLog, self).__init__(master=master, text="Chat Log")
         self.messages = []
@@ -47,7 +47,7 @@ class ChatLog(Labelframe):
         common = dict(
             relief=RAISED,
             wraplength=self.msgcols * self.colwidth,
-            padding=0.5 * EM,
+            padding=EM,
         )
         left = common | dict(background="white")
         right = common | dict(background="lightgreen")
@@ -59,7 +59,7 @@ class ChatLog(Labelframe):
         self.placement = dict(
             columnspan=self.msgcols,
             sticky=EW,
-            pady=(0.25 * EM, 0.5 * EM),
+            pady=(0.3 * EM, 0.7 * EM),
         )
 
     def _calc_msg_height(self, msgdict):
@@ -115,7 +115,7 @@ class ChatLog(Labelframe):
     async def add_anim_msg(self, msg, name=None, side=None, delay=0.075):
         """Add an message with typing animation to the chat log."""
         text, msg = self._msg(msg, name, side)
-        words = msg.split(" ")
+        words = msg.split(" ")[:-1]
 
         cur = ""
         try:
@@ -124,6 +124,8 @@ class ChatLog(Labelframe):
                 text.set(cur)
                 await asyncio.sleep(delay)
         except asyncio.CancelledError:
+            pass
+        finally:
             text.set(msg)
 
     def set_speaker(self, name=None, side=None):

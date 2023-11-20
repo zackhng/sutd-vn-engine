@@ -6,12 +6,13 @@ import logging
 # https://docs.python.org/3/library/tk.html
 # https://docs.python.org/3/library/tkinter.ttk.html
 import tkinter as tk
+import tkinter.font as tkFont
 import tkinter.ttk as ttk
 from contextlib import asynccontextmanager
 from typing import Callable, Dict, NamedTuple
 
 from sutd_vn_engine.engine.chat import ChatLog
-from sutd_vn_engine.engine.utils import LOOP_WAIT, make_toggle, wait_coro
+from sutd_vn_engine.engine.utils import EM, LOOP_WAIT, make_toggle, wait_coro
 
 __all__ = ["Controller", "create_app"]
 
@@ -97,6 +98,10 @@ def init_gui(loop):
     root.configure(bg="pink")
     root.geometry("1280x960")
     root.resizable(width=False, height=False)
+
+    default_font = tkFont.nametofont("TkDefaultFont")
+    default_font.config(family="Courier New", size=EM)
+    root.option_add("*Font", default_font)
 
     chatlog = ChatLog(root)
     textbox = ttk.Entry(root)
