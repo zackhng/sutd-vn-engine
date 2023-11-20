@@ -3,9 +3,9 @@
 from tkinter import *
 from tkinter.ttk import *  # type: ignore
 
-__all__ = ["ChatLog"]
+from sutd_vn_engine.engine.utils import EM, LORUM
 
-EM = 8  # In px.
+__all__ = ["ChatLog"]
 
 
 class ChatLog(Labelframe):
@@ -58,7 +58,7 @@ class ChatLog(Labelframe):
         self.placement = dict(
             columnspan=self.msgcols,
             sticky=EW,
-            pady=(0.5 * EM, 1.5 * EM),
+            pady=(0.25 * EM, 0.5 * EM),
         )
 
     def update_inner_size(self):
@@ -70,6 +70,7 @@ class ChatLog(Labelframe):
             height += widget.winfo_reqheight()
             height += pad if isinstance(pad, int) else sum(pad)
         self.canvas.config(scrollregion=(0, 0, 0, height))
+        self.canvas.yview_moveto(1)
 
     def set_speaker(self, name=None, side=None):
         """Set the speaker name and side."""
@@ -115,25 +116,16 @@ if __name__ == "__main__":
     chatlog = ChatLog(root)
     chatlog.pack(fill=Y, expand=True)
 
-    lorum = (
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum at "
-        "elit non orci luctus porta et sit amet turpis. Vestibulum magna velit, "
-        "finibus vel luctus vitae, condimentum eleifend diam. Maecenas ultrices "
-        "neque at orci porta, a gravida eros aliquam. Phasellus eget ex placerat, "
-        "condimentum nunc eget, convallis ante. Quisque feugiat magna massa, sit "
-        "amet consectetur velit iaculis non. Aliquam nec."
-    )
-
     chatlog.add_message("This is the beginning of the conversation.")
 
     chatlog.set_speaker("You", RIGHT)
     chatlog.add_message("Hello, world! Why is this being split across two lines?")
-    chatlog.add_message(lorum)
+    chatlog.add_message(LORUM)
 
     chatlog.set_speaker("Someone Else", LEFT)
-    chatlog.add_message(lorum)
-    chatlog.add_message(lorum)
-    chatlog.add_message(lorum)
+    chatlog.add_message(LORUM)
+    chatlog.add_message(LORUM)
+    chatlog.add_message(LORUM)
 
     pprint(chatlog.messages)
     root.mainloop()
