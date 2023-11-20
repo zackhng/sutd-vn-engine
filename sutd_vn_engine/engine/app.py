@@ -2,16 +2,16 @@
 
 import asyncio
 import logging
-from contextlib import asynccontextmanager
 
 # https://docs.python.org/3/library/tk.html
 # https://docs.python.org/3/library/tkinter.ttk.html
-from tkinter import *
-from tkinter.ttk import *  # type: ignore
+import tkinter as tk
+import tkinter.ttk as ttk
+from contextlib import asynccontextmanager
 from typing import Callable, Dict, NamedTuple
 
 from sutd_vn_engine.engine.chat import ChatLog
-from sutd_vn_engine.engine.utils import LOOP_WAIT, wait_coro
+from sutd_vn_engine.engine.utils import LOOP_WAIT, make_toggle, wait_coro
 
 __all__ = ["Controller", "create_app"]
 
@@ -21,14 +21,14 @@ log = logging.getLogger(__name__)
 class Controller(NamedTuple):
     """GUI controller."""
 
-    root: Tk
+    root: tk.Tk
     flags: Dict[str, bool]
     input: Callable[[object], str]
     print: Callable[..., None]
     set_speaker: Callable
 
 
-def create_input_function(chatlog: ChatLog, inputbox: Entry):
+def create_input_function(chatlog: ChatLog, inputbox: ttk.Entry):
     """Emulates input function using GUI elements."""
     triggered = False
 
@@ -40,49 +40,74 @@ def create_input_function(chatlog: ChatLog, inputbox: Entry):
         nonlocal triggered
         text = str(__prompt)
         logging.info(f"Wait prompt: {text}")
-        inputbox.config(state=NORMAL)
-        chatlog.add_msg(text, name="", side=CENTER)
+        inputbox.config(state=tk.NORMAL)
+        chatlog.add_msg(text, name="", side=tk.CENTER)
         while not triggered:
             await asyncio.sleep(LOOP_WAIT)
         triggered = False
         reply = inputbox.get()
         inputbox.delete("0", "end")
-        inputbox.config(state=DISABLED)
+        inputbox.config(state=tk.DISABLED)
         logging.info(f"Prompt: {text}, Return: {reply}")
         return reply
 
     inputbox.bind("<Return>", _trigger)
-    inputbox.config(state=DISABLED)
+    inputbox.config(state=tk.DISABLED)
     logging.info("Input function binded.")
     return _input
 
 
 def create_print_function(chatlog: ChatLog):
     """Emulates print function using GUI elements."""
+    skipvar = tk.BooleanVar()
 
     async def _print(*values, sep=" "):
         text = sep.join(map(str, values))
         logging.info(f"Print: {text}")
-        await chatlog.add_anim_msg(text)
 
-    return _print
+        running = True
+
+        async def _check_cancel():
+            nonlocal running
+            while running and not skipvar.get():
+                await asyncio.sleep(LOOP_WAIT)
+
+        async def _print_coro():
+            nonlocal running
+            await chatlog.add_anim_msg(text)
+            running = False
+
+        task_cancel = asyncio.create_task(_check_cancel())
+        task_print = asyncio.create_task(_print_coro())
+
+        await asyncio.wait(
+            [task_cancel, task_print], return_when=asyncio.FIRST_COMPLETED
+        )
+        if running:
+            task_print.cancel()
+        await asyncio.gather(task_cancel, task_print)
+
+    return _print, skipvar
 
 
 def init_gui(loop):
     """Init GUI and GUI controller."""
-    root = Tk()
+    root = tk.Tk()
     root.title("SUTD VN")
     root.configure(bg="pink")
     root.geometry("1280x960")
     root.resizable(width=False, height=False)
 
     chatlog = ChatLog(root)
-    textbox = Entry(root)
-    chatlog.pack(fill=Y, expand=True)
+    textbox = ttk.Entry(root)
+    skipbtn = tk.Button(root, text="Skip")
+    chatlog.pack(fill="y", expand=True)
     textbox.pack()
+    skipbtn.pack()
 
     _input = create_input_function(chatlog, textbox)
-    _print = create_print_function(chatlog)
+    _print, skipvar = create_print_function(chatlog)
+    make_toggle(skipbtn, skipvar, "Skipping", "Skip")
 
     def _ginput(*args, **kwargs):
         return wait_coro(_input(*args, **kwargs), loop)
@@ -115,7 +140,7 @@ async def create_app():
         logging.info("GUI loop stopped.")
         raise KeyboardInterrupt
 
-    loop_task = asyncio.create_task(_loop())
+    asyncio.create_task(_loop())
 
     def _on_quit():
         nonlocal running

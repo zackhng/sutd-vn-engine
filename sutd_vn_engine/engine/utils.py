@@ -2,7 +2,7 @@
 
 import asyncio
 
-__all__ = ["LOOP_WAIT", "EM", "LORUM", "wait_coro"]
+__all__ = ["LOOP_WAIT", "EM", "LORUM", "wait_coro", "make_toggle"]
 
 LOOP_WAIT = 0.015
 EM = 8  # In px.
@@ -31,3 +31,20 @@ def wait_coro(coro, loop):
         return future.result()
     finally:
         future.cancel()
+
+
+def make_toggle(button, boolvar, onlabel, offlabel):
+    """Make a button become a toggle."""
+
+    def _update():
+        if boolvar.get():
+            button.config(text=onlabel, fg="green")
+        else:
+            button.config(text=offlabel, fg="red")
+
+    def _toggle():
+        boolvar.set(not boolvar.get())
+        _update()
+
+    button.config(command=_toggle)
+    _update()

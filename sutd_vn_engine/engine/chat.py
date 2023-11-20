@@ -118,10 +118,13 @@ class ChatLog(Labelframe):
         words = msg.split(" ")
 
         cur = ""
-        for word in words:
-            cur += f"{word} "
-            text.set(cur)
-            await asyncio.sleep(delay)
+        try:
+            for word in words:
+                cur += f"{word} "
+                text.set(cur)
+                await asyncio.sleep(delay)
+        except asyncio.CancelledError:
+            text.set(msg)
 
     def set_speaker(self, name=None, side=None):
         """Set the speaker name and side."""
