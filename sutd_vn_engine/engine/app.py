@@ -101,6 +101,8 @@ def init_gui(loop):
     root.option_add("*Font", default_font)
 
     canvas = tk.Canvas(root, background="pink")
+    taskbar = tk.Frame(root, background="lightgray", relief="raised", bd=4)
+    start_btn = tk.Button(taskbar, text="⊞", font="Arial 20")
     chat_win = ttk.Frame(canvas)
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
@@ -109,13 +111,13 @@ def init_gui(loop):
     chatlog.grid(sticky="nsew", row=0, column=0, columnspan=12)
     skipbtn.grid(sticky="ew", row=1, column=0, columnspan=2)
     textbox.grid(sticky="ew", row=1, column=2, columnspan=10)
-    canvas.pack(fill="both", expand=True)
+    canvas.pack(fill="both", side="top", expand=True)
+    taskbar.pack(fill="x", side="bottom")
+    start_btn.pack(side="left")
 
     root.update()
     canvas.create_window(
-        (canvas.winfo_width(), canvas.winfo_height()),
-        window=chat_win,
-        anchor="center",
+        (canvas.winfo_width(), canvas.winfo_height()), window=chat_win, anchor="center"
     )
 
     _input = create_input_function(chatlog, textbox)
