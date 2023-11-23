@@ -112,15 +112,14 @@ class ChatLog(Labelframe):
         """Add a message to the chat log."""
         self._msg(msg, name, side)
 
-    async def add_anim_msg(self, msg, name=None, side=None, delay=0.075):
+    async def add_anim_msg(self, msg, name=None, side=None, delay=0.01):
         """Add an message with typing animation to the chat log."""
         text, msg = self._msg(msg, name, side)
-        words = msg.split(" ")[:-1]
 
         cur = ""
         try:
-            for word in words:
-                cur += f"{word} "
+            for c in msg:
+                cur += c
                 text.set(cur)
                 await asyncio.sleep(delay)
         except asyncio.CancelledError:
@@ -140,7 +139,7 @@ if __name__ == "__main__":
     root = Tk()
     root.title("Chat Log Test")
     root.configure(bg="pink")
-    root.geometry("800x600")
+    root.geometry("1280x960")
     root.resizable(width=False, height=False)
 
     chatlog = ChatLog(root)

@@ -1,16 +1,10 @@
 """Main app."""
 
-import asyncio
-import logging
-
-from sutd_vn_engine.engine import Controller, create_app
+from sutd_vn_engine.engine import Controller, run_story
 from sutd_vn_engine.engine.utils import LORUM
 
-USER_PREFERENCE_IS_BURGER = None
-USER_PREFERENCE_IS_GAY = False
-FLAG_CAT_OR_DOG = False
 
-
+# TODO: show an approximation of the obsessiveness score as a progress bar.
 def calculate_beginning_score(flags):
     """Calculate obsessiveness score after beginning phase."""
     score = 0
@@ -60,22 +54,10 @@ def event_security_job(G: Controller):
 def story(G: Controller):
     """Storyline."""
     event_security_job(G)
-    # scenario_sex_preference(G)
-    # scenario_save_kitty(G)
-    # scenario_conclusion(G)
-
-
-async def main():
-    """Main entrypoint."""
-    async with create_app() as G:
-        await asyncio.to_thread(story, G)
-        while True:
-            await asyncio.sleep(1)
+    # event_sex_preference(G)
+    # event_save_kitty(G)
+    # event_conclusion(G)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
+    run_story(story)

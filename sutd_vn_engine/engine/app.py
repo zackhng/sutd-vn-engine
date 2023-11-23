@@ -14,7 +14,7 @@ from typing import Callable, Dict, NamedTuple
 from sutd_vn_engine.engine.chat import ChatLog
 from sutd_vn_engine.engine.utils import EM, LOOP_WAIT, make_toggle, wait_coro
 
-__all__ = ["Controller", "create_app"]
+__all__ = ["Controller", "create_app", "run_story"]
 
 log = logging.getLogger(__name__)
 
@@ -161,3 +161,19 @@ async def create_app():
     finally:
         if running:
             _on_quit()
+
+
+def run_story(story):
+    """Run story."""
+    logging.basicConfig(level=logging.INFO)
+
+    async def _run_story():
+        async with create_app() as G:
+            await asyncio.to_thread(story, G)
+            while True:
+                await asyncio.sleep(1)
+
+    try:
+        asyncio.run(_run_story())
+    except KeyboardInterrupt:
+        pass
