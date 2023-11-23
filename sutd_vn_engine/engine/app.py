@@ -95,20 +95,28 @@ def init_gui(loop):
     """Init GUI and GUI controller."""
     root = tk.Tk()
     root.title("SUTD VN")
-    root.configure(bg="pink")
-    root.geometry("1280x960")
-    root.resizable(width=False, height=False)
 
     default_font = tkFont.nametofont("TkDefaultFont")
     default_font.config(family="Courier New", size=EM)
     root.option_add("*Font", default_font)
 
-    chatlog = ChatLog(root)
-    textbox = ttk.Entry(root)
-    skipbtn = tk.Button(root, text="Skip")
-    chatlog.pack(fill="y", expand=True)
-    textbox.pack()
-    skipbtn.pack()
+    canvas = tk.Canvas(root, background="pink")
+    chat_win = ttk.Frame(canvas)
+    chatlog = ChatLog(chat_win)
+    textbox = ttk.Entry(chat_win)
+    skipbtn = tk.Button(chat_win, text="Skip")
+
+    chatlog.grid(sticky="nsew", row=0, column=0, columnspan=12)
+    skipbtn.grid(sticky="ew", row=1, column=0, columnspan=2)
+    textbox.grid(sticky="ew", row=1, column=2, columnspan=10)
+    canvas.pack(fill="both", expand=True)
+
+    root.update()
+    canvas.create_window(
+        (canvas.winfo_width(), canvas.winfo_height()),
+        window=chat_win,
+        anchor="center",
+    )
 
     _input = create_input_function(chatlog, textbox)
     _print, skipvar = create_print_function(chatlog)
