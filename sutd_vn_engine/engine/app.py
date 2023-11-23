@@ -91,19 +91,18 @@ def create_print_function(chatlog: ChatLog):
     return _print, skipvar
 
 
-def init_gui(loop):
-    """Init GUI and GUI controller."""
-    root = tk.Tk()
-    root.title("SUTD VN")
-
-    default_font = tkFont.nametofont("TkDefaultFont")
-    default_font.config(family="Courier New", size=EM)
-    root.option_add("*Font", default_font)
-
-    canvas = tk.Canvas(root, background="pink")
+def init_taskbar(root):
+    """Create taskbar."""
     taskbar = tk.Frame(root, background="lightgray", relief="raised", bd=4)
     start_btn = tk.Button(taskbar, text="⊞", font="Arial 20")
-    chat_win = ttk.Frame(canvas)
+    start_btn.pack(side="left")
+
+    return taskbar
+
+
+def init_chat_win(root, loop):
+    """Create chat window."""
+    chat_win = tk.Frame(root)
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
     skipbtn = tk.Button(chat_win, text="Skip")
@@ -111,14 +110,6 @@ def init_gui(loop):
     chatlog.grid(sticky="nsew", row=0, column=0, columnspan=12)
     skipbtn.grid(sticky="ew", row=1, column=0, columnspan=2)
     textbox.grid(sticky="ew", row=1, column=2, columnspan=10)
-    canvas.pack(fill="both", side="top", expand=True)
-    taskbar.pack(fill="x", side="bottom")
-    start_btn.pack(side="left")
-
-    root.update()
-    canvas.create_window(
-        (canvas.winfo_width(), canvas.winfo_height()), window=chat_win, anchor="center"
-    )
 
     _input = create_input_function(chatlog, textbox)
     _print, skipvar = create_print_function(chatlog)
@@ -129,6 +120,31 @@ def init_gui(loop):
 
     def _gprint(*args, **kwargs):
         return wait_coro(_print(*args, **kwargs), loop)
+
+    return chat_win, chatlog, _ginput, _gprint
+
+
+def init_gui(loop):
+    """Init GUI and GUI controller."""
+    root = tk.Tk()
+    root.title("SUTD VN")
+
+    default_font = tkFont.nametofont("TkDefaultFont")
+    default_font.config(family="Courier New", size=EM)
+    root.option_add("*Font", default_font)
+
+    canvas = tk.Canvas(root, background="pink")
+    taskbar = init_taskbar(root)
+
+    canvas.pack(fill="both", side="top", expand=True)
+    taskbar.pack(fill="x", side="bottom")
+
+    chat_win, chatlog, _ginput, _gprint = init_chat_win(root, loop)
+
+    root.update()
+    canvas.create_window(
+        (canvas.winfo_width(), canvas.winfo_height()), window=chat_win, anchor="center"
+    )
 
     _G = Controller(
         root=root,
