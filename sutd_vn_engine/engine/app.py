@@ -93,23 +93,28 @@ def create_print_function(chatlog: ChatLog):
 
 def init_taskbar(root):
     """Create taskbar."""
-    taskbar = tk.Frame(root, background="lightgray", relief="raised", bd=4)
+    taskbar = tk.Frame(root, background="lightgray", relief="raised", bd=2)
     start_btn = tk.Button(taskbar, text="⊞", font="Arial 20")
     start_btn.pack(side="left")
 
     return taskbar
 
 
-def init_chat_win(root, loop):
+def init_chat_win(canvas, loop):
     """Create chat window."""
-    chat_win = tk.Frame(root)
+    chat_win = tk.Frame(canvas, relief="ridge", bd=2)
+    chat_frame = tk.Frame(chat_win, relief="sunken", bd=2, bg="lightblue")
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
     skipbtn = tk.Button(chat_win, text="Skip")
+    resize = ttk.Sizegrip(chat_win)
 
-    chatlog.grid(sticky="nsew", row=0, column=0, columnspan=12)
-    skipbtn.grid(sticky="ew", row=1, column=0, columnspan=2)
-    textbox.grid(sticky="ew", row=1, column=2, columnspan=10)
+    chat_win.grid_rowconfigure(0, minsize=2 * EM)
+    chat_frame.grid(sticky="nsew", row=0, column=0, columnspan=12)
+    chatlog.grid(sticky="nsew", row=1, column=0, columnspan=12)
+    skipbtn.grid(sticky="ew", row=2, column=0, columnspan=2)
+    textbox.grid(sticky="nsew", row=2, column=2, columnspan=10)
+    resize.grid(sticky="se", row=2, column=11)
 
     _input = create_input_function(chatlog, textbox)
     _print, skipvar = create_print_function(chatlog)
@@ -121,7 +126,19 @@ def init_chat_win(root, loop):
     def _gprint(*args, **kwargs):
         return wait_coro(_print(*args, **kwargs), loop)
 
-    return chat_win, chatlog, _ginput, _gprint
+    chat_win_id = canvas.create_window(
+        (canvas.winfo_width(), canvas.winfo_height()), window=chat_win, anchor="n"
+    )
+
+    def _move_win(_):
+        x0, y0 = canvas.winfo_pointerxy()
+        x0 -= canvas.winfo_rootx()
+        y0 -= canvas.winfo_rooty()
+        canvas.coords(chat_win_id, x0, y0)
+
+    chat_frame.bind("<B1-Motion>", _move_win)
+
+    return chatlog, _ginput, _gprint
 
 
 def init_gui(loop):
@@ -138,13 +155,9 @@ def init_gui(loop):
 
     canvas.pack(fill="both", side="top", expand=True)
     taskbar.pack(fill="x", side="bottom")
-
-    chat_win, chatlog, _ginput, _gprint = init_chat_win(root, loop)
-
     root.update()
-    canvas.create_window(
-        (canvas.winfo_width(), canvas.winfo_height()), window=chat_win, anchor="center"
-    )
+
+    chatlog, _ginput, _gprint = init_chat_win(canvas, loop)
 
     _G = Controller(
         root=root,
