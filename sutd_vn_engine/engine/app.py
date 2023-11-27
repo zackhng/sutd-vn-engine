@@ -13,6 +13,7 @@ from typing import Callable, Dict, NamedTuple
 
 from sutd_vn_engine.engine.chat import ChatLog
 from sutd_vn_engine.engine.utils import EM, LOOP_WAIT, make_toggle, wait_coro
+from sutd_vn_engine.engine.windowing import create_window
 
 __all__ = ["Controller", "create_app", "run_story"]
 
@@ -102,19 +103,18 @@ def init_taskbar(root):
 
 def init_chat_win(canvas, loop):
     """Create chat window."""
-    chat_win = tk.Frame(canvas, relief="ridge", bd=2)
-    chat_frame = tk.Frame(chat_win, relief="sunken", bd=2, bg="lightblue")
+    chat_win = create_window(
+        canvas,
+        "WhatsUp",
+        (canvas.winfo_width(), canvas.winfo_height(), 20 * EM, 20 * EM),
+    )
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
     skipbtn = tk.Button(chat_win, text="Skip")
-    resize = ttk.Sizegrip(chat_win)
 
-    chat_win.grid_rowconfigure(0, minsize=2 * EM)
-    chat_frame.grid(sticky="nsew", row=0, column=0, columnspan=12)
-    chatlog.grid(sticky="nsew", row=1, column=0, columnspan=12)
-    skipbtn.grid(sticky="ew", row=2, column=0, columnspan=2)
-    textbox.grid(sticky="nsew", row=2, column=2, columnspan=10)
-    resize.grid(sticky="se", row=2, column=11)
+    chatlog.grid(sticky="nsew", row=0, columnspan=12, rowspan=11)
+    skipbtn.grid(sticky="ew", row=11, column=0, columnspan=2)
+    textbox.grid(sticky="nsew", row=11, column=2, columnspan=10)
 
     _input = create_input_function(chatlog, textbox)
     _print, skipvar = create_print_function(chatlog)
@@ -125,18 +125,6 @@ def init_chat_win(canvas, loop):
 
     def _gprint(*args, **kwargs):
         return wait_coro(_print(*args, **kwargs), loop)
-
-    chat_win_id = canvas.create_window(
-        (canvas.winfo_width(), canvas.winfo_height()), window=chat_win, anchor="n"
-    )
-
-    def _move_win(_):
-        x0, y0 = canvas.winfo_pointerxy()
-        x0 -= canvas.winfo_rootx()
-        y0 -= canvas.winfo_rooty()
-        canvas.coords(chat_win_id, x0, y0)
-
-    chat_frame.bind("<B1-Motion>", _move_win)
 
     return chatlog, _ginput, _gprint
 
