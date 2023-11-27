@@ -36,15 +36,16 @@ def create_window(canvas, title, bbox):
 
     def _shade_win(_):
         nonlocal shaded
-        if shaded:
-            canvas.itemconfigure(win_id, state="normal")
+        if shaded := not shaded:
+            content.place(height=0)
+            win.configure(height=bar_h)
         else:
-            canvas.itemconfigure(win_id, state="hidden")
-        shaded = not shaded
+            content.place(height=h)
+            win.configure(height=h + bar_h)
 
     bar.bind("<B1-Motion>", _move_win)
     title.bind("<B1-Motion>", _move_win)
-    # bar.bind("<Button-1>", _shade_win)
-    # title.bind("<Button-1>", _shade_win)
+    bar.bind("<Double-Button-1>", _shade_win)
+    title.bind("<Double-Button-1>", _shade_win)
 
     return content

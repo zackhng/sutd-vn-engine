@@ -77,7 +77,10 @@ def create_print_function(chatlog: ChatLog):
 
         async def _print_coro():
             nonlocal running
-            await chatlog.add_anim_msg(text)
+            try:
+                await chatlog.add_anim_msg(text)
+            except tk.TclError:
+                log.warning("App exited during print animation.")
             running = False
 
         task_cancel = asyncio.create_task(_check_cancel())
