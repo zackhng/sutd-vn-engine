@@ -4,7 +4,7 @@ import asyncio
 from tkinter import *
 from tkinter.ttk import *  # type: ignore
 
-from sutd_vn_engine.engine.utils import EM, LORUM
+from .utils import EM, LORUM
 
 __all__ = ["ChatLog"]
 

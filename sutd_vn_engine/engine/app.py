@@ -11,9 +11,9 @@ import tkinter.ttk as ttk
 from contextlib import asynccontextmanager
 from typing import Any, Callable, Dict, NamedTuple
 
-from sutd_vn_engine.engine.chat import ChatLog
-from sutd_vn_engine.engine.utils import EM, LOOP_WAIT, make_toggle, wait_coro
-from sutd_vn_engine.engine.windowing import create_window
+from .chat import ChatLog
+from .utils import EM, LOOP_WAIT, make_toggle, wait_coro
+from .windowing import create_window
 
 __all__ = ["Controller", "create_app", "run_story"]
 

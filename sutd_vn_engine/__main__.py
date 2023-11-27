@@ -5,7 +5,7 @@
 ##################
 # Import anything you need, like math.
 
-from sutd_vn_engine.engine import Controller, run_story
+from .engine import Controller, run_story
 
 
 def event_example(G: Controller):

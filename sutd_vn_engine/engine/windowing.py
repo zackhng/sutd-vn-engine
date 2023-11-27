@@ -2,7 +2,7 @@
 
 import tkinter as tk
 
-from sutd_vn_engine.engine.utils import EM
+from .utils import EM
 
 __all__ = ["create_window"]
 
