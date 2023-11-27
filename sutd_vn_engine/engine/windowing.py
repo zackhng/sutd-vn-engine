@@ -46,7 +46,7 @@ def create_window(canvas, title, bbox, u=12):
 
     bar.bind("<B1-Motion>", _move_win)
     title.bind("<B1-Motion>", _move_win)
-    bar.bind("<Button-1>", _shade_win)
-    title.bind("<Button-1>", _shade_win)
+    # bar.bind("<Button-1>", _shade_win)
+    # title.bind("<Button-1>", _shade_win)
 
     return content
