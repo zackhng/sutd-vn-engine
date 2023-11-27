@@ -8,6 +8,7 @@ import logging
 import tkinter as tk
 import tkinter.font as tkFont
 import tkinter.ttk as ttk
+from concurrent import futures
 from contextlib import asynccontextmanager
 from typing import Any, Callable, Dict, NamedTuple
 
@@ -170,7 +171,10 @@ async def create_app():
             _G.root.update()
             await asyncio.sleep(LOOP_WAIT)
         logging.info("GUI loop stopped.")
-        raise KeyboardInterrupt
+
+        # Clean up asyncio tasks.
+        for task in asyncio.all_tasks():
+            task.cancel()
 
     asyncio.create_task(_loop())
 
@@ -194,11 +198,23 @@ def run_story(story):
     """Run story."""
     logging.basicConfig(level=logging.INFO)
 
+    def _wrapper(*args, **kwargs):
+        try:
+            story(*args, **kwargs)
+        except futures.CancelledError:
+            pass
+        except Exception as e:
+            log.exception("Error while executing story", exc_info=e)
+            raise e
+
     async def _run_story():
-        async with create_app() as G:
-            await asyncio.to_thread(story, G)
-            while True:
-                await asyncio.sleep(1)
+        try:
+            async with create_app() as G:
+                await asyncio.to_thread(_wrapper, G)
+                while True:
+                    await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            pass
 
     try:
         asyncio.run(_run_story())
