@@ -31,12 +31,12 @@ class ChatLog(ttk.Labelframe):
         scroll = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
 
         canvas.config(yscrollcommand=scroll.set)
-        inner_id = canvas.create_window((0, 0), window=inner, anchor="n")
+        inner_id = canvas.create_window((0, 0), window=inner, anchor="nw")
         canvas.pack(fill="both", expand=True, side="left")
         scroll.pack(fill="y", side="right")
 
         def _on_canvas_configure(event):
-            canvas.coords(inner_id, event.width // 2, 0)
+            canvas.coords(inner_id, 0, 0)
             canvas.itemconfig(inner_id, width=event.width)
 
         canvas.bind("<Configure>", _on_canvas_configure)
@@ -57,7 +57,7 @@ class ChatLog(ttk.Labelframe):
         common = dict(relief="raised", padding=EM)
 
         def _on_inner_configure(event):
-            cwidth = event.width / self.ncols
+            cwidth = event.width // self.ncols
             common["wraplength"] = cwidth * self.msgcols - 4 * common["padding"]
             self.inner.columnconfigure([*range(self.ncols)], minsize=cwidth, weight=1)
 
