@@ -26,7 +26,7 @@ class ChatLog(ttk.Labelframe):
 
     def _init_gui(self):
         """Init GUI."""
-        canvas = tk.Canvas(self, highlightthickness=0, bd=0)
+        canvas = tk.Canvas(self, highlightthickness=0, bd=0, width=0, height=0)
         inner = tk.Frame(canvas, bd=0)
         scroll = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
 

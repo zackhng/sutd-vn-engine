@@ -107,14 +107,18 @@ def init_chat_win(canvas, loop):
     chat_win = create_window(
         canvas,
         "WhatsUp",
-        (canvas.winfo_width(), canvas.winfo_height(), 20 * EM, 20 * EM),
+        (canvas.winfo_width(), canvas.winfo_height(), 60 * EM, 80 * EM),
     )
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
     skipbtn = tk.Button(chat_win, text="Skip")
 
+    chat_win.rowconfigure(11, minsize=EM)
+    chat_win.rowconfigure([*range(11)], weight=1)
+    chat_win.columnconfigure([*range(12)], weight=1)
+
     chatlog.grid(sticky="nsew", row=0, columnspan=12, rowspan=11)
-    skipbtn.grid(sticky="ew", row=11, column=0, columnspan=2)
+    skipbtn.grid(sticky="nsew", row=11, column=0, columnspan=2)
     textbox.grid(sticky="nsew", row=11, column=2, columnspan=10)
 
     _input = create_input_function(chatlog, textbox)

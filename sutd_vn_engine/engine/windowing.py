@@ -7,23 +7,21 @@ from .utils import EM
 __all__ = ["create_window"]
 
 
-def create_window(canvas, title, bbox, u=12):
-    """Create a windowed frame."""
-    x, y, w, h = bbox
-    bar_h = 2 * EM
+def create_window(canvas, title, bbox):
+    """Create a windowed frame.
 
-    win = tk.Frame(canvas, relief="ridge", bd=2)
-    bar = tk.Frame(win, bg="lightblue", relief="raised", bd=2)
-    content = tk.Frame(win)
+    Note that w & h specifies the internal frame size, excluding the window bar.
+    """
+    x, y, w, h = bbox
+    bar_h = 4 * EM
+
+    win = tk.Frame(canvas, bd=0, width=w, height=h + bar_h)
+    content = tk.Frame(win, bd=2, relief="ridge")
+    bar = tk.Frame(win, bd=2, bg="lightblue", relief="raised")
     title = tk.Label(bar, text=title, font=f"Verdana {EM}", bg="lightblue")
 
-    win.grid_rowconfigure(0, minsize=bar_h, weight=1)
-    win.grid_rowconfigure(1, minsize=h - bar_h, weight=1)
-    content.grid_rowconfigure(list(range(u)), minsize=(h - bar_h) / u, weight=1)
-    content.grid_columnconfigure(list(range(u)), minsize=w / u, weight=1)
-
-    bar.grid(sticky="nsew", row=0)
-    content.grid(sticky="nsew", row=1)
+    bar.place(x=0, y=0, width=w, height=bar_h)
+    content.place(x=0, y=bar_h, width=w, height=h)
     title.pack(side="left")
 
     win_id = canvas.create_window((x, y), window=win, anchor="n")
