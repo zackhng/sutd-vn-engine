@@ -9,7 +9,7 @@ import tkinter as tk
 import tkinter.font as tkFont
 import tkinter.ttk as ttk
 from contextlib import asynccontextmanager
-from typing import Callable, Dict, NamedTuple
+from typing import Any, Callable, Dict, NamedTuple
 
 from sutd_vn_engine.engine.chat import ChatLog
 from sutd_vn_engine.engine.utils import EM, LOOP_WAIT, make_toggle, wait_coro
@@ -24,7 +24,7 @@ class Controller(NamedTuple):
     """GUI controller."""
 
     root: tk.Tk
-    flags: Dict[str, bool]
+    flags_dict: Dict[str, Any]
     input: Callable[[object], str]
     print: Callable[..., None]
     set_speaker: Callable
@@ -149,7 +149,7 @@ def init_gui(loop):
 
     _G = Controller(
         root=root,
-        flags={},
+        flags_dict={},
         input=_ginput,
         print=_gprint,
         set_speaker=chatlog.set_speaker,
