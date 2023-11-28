@@ -20,8 +20,8 @@ __all__ = [
 
 LOOP_WAIT = 0.008
 """60Hz loop sleep. Sleep is needed in asyncio to process other events."""
-# TODO: Rescale based on DPI of screen.
-EM = 10  # In px.
+# NOTE: Put in a list to be mutable.
+EM = [2]  # In px.
 """Global size used for fonts, padding, and so on."""
 LORUM = (
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum at "

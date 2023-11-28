@@ -77,14 +77,14 @@ class ChatLog(ttk.Labelframe):
         self.style = ttk.Style(self)
 
         # Common style for all messages.
-        common = dict(relief="raised", padding=EM)
+        common = dict(relief="raised", padding=EM[0])
 
         # Common grid placement properties for messages.
         self.placement = dict(
             columnspan=self.msgcols,
             sticky="ew",
-            padx=EM,
-            pady=(0.3 * EM, 0.7 * EM),
+            padx=EM[0],
+            pady=(0.3 * EM[0], 0.7 * EM[0]),
         )
 
         def _on_inner_configure(event: tk.Event):
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Chat Log Test")
     default_font = tkFont.nametofont("TkDefaultFont")
-    default_font.config(family="Courier New", size=EM)
+    default_font.config(family="Courier New", size=EM[0])
     root.option_add("*Font", default_font)
     root.config(bg="pink")
     root.geometry("1280x960")
@@ -240,9 +240,9 @@ if __name__ == "__main__":
         """Resize ChatLog on click by changing padding."""
         global pad
         if pad := not pad:
-            chatlog.pack(padx=20 * EM)
+            chatlog.pack(padx=20 * EM[0])
         else:
-            chatlog.pack(padx=10 * EM)
+            chatlog.pack(padx=10 * EM[0])
 
     _resize(None)
     chatlog.bind("<Button-1>", _resize)

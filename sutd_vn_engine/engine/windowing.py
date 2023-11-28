@@ -27,8 +27,8 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
         tk.Frame: Frame widget to put window contents in.
     """
     x, y, w, h = bbox
-    bar_h = 4 * EM  # Height of window bar.
-    grip_s = 1.5 * EM  # Size of window grip.
+    bar_h = 4 * EM[0]  # Height of window bar.
+    grip_s = 1.5 * EM[0]  # Size of window grip.
     shaded = False  # Whether window is shaded.
 
     # Add/retrieve map of canvas ids to windowed frames to canvas.
@@ -39,7 +39,7 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
     win = tk.Frame(canvas, bd=0, width=w, height=h + bar_h)
     content = tk.Frame(win, bd=2, relief="ridge")
     bar = tk.Frame(win, bd=2, bg="lightblue", relief="raised")
-    tlabel = tk.Label(bar, text=title, font=f"Verdana {EM}", bg="lightblue")
+    tlabel = tk.Label(bar, text=title, font=f"Verdana {EM[0]}", bg="lightblue")
     grip = ttk.Sizegrip(win)
 
     def _layout_widgets():
@@ -109,7 +109,7 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
         cy -= canvas.winfo_rooty()
 
         # New width & height.
-        w, h = max(cx - x, bar_h + EM), max(cy - y - bar_h, bar_h + EM)
+        w, h = max(cx - x, bar_h + EM[0]), max(cy - y - bar_h, bar_h + EM[0])
 
         # Resize window by placing widgets again.
         win.config(width=w, height=h + bar_h)

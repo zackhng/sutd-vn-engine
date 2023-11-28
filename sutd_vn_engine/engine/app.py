@@ -139,7 +139,13 @@ def create_print_function(chatlog: ChatLog):
 def init_taskbar(root: tk.Misc):
     """Create taskbar layout in a `tk.Frame` as child of `root`."""
     taskbar = tk.Frame(root, bg="#245dda", relief="raised", bd=2)
-    start_btn = tk.Button(taskbar, bg="#81c046", text="⊞", font="Arial 20")
+    start_btn = tk.Button(
+        taskbar,
+        bg="#81c046",
+        fg="white",
+        text="Start",
+        font=f"Verdana {EM[0]*1.4:.0f} italic",
+    )
     start_btn.pack(side="left")
 
     return taskbar
@@ -163,14 +169,14 @@ def init_chat_win(canvas: tk.Canvas, loop: asyncio.AbstractEventLoop):
             ChatLog widget, emulated `input()` function, emulated `print()` function.
     """
     # Create widgets.
-    bbox = (canvas.winfo_width() // 2, 0, 60 * EM, 80 * EM)
+    bbox = (canvas.winfo_width() // 2, 0, 60 * EM[0], 80 * EM[0])
     chat_win = create_window(canvas, "Bubble", bbox)
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
     skipbtn = tk.Button(chat_win, text="Skip")
 
     # Configure grid layout.
-    chat_win.rowconfigure(11, minsize=EM)
+    chat_win.rowconfigure(11, minsize=EM[0])
     chat_win.rowconfigure([*range(11)], weight=1)
     chat_win.columnconfigure([*range(12)], weight=1)
 
@@ -204,9 +210,21 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     root = tk.Tk()
     root.title("SUTD VN")
 
+    # NOTE: Dirty hack to change global scale.
+    # root.tk.call("tk", "scaling", 2.0) # Doesn't work.
+    screen_h = root.winfo_screenheight()
+    if screen_h >= 2160:
+        EM[0] = 20
+    elif screen_h >= 1440:
+        EM[0] = 10
+    elif screen_h >= 1080:
+        EM[0] = 7
+    else:
+        EM[0] = 5
+
     # Configure global font.
     default_font = tkFont.nametofont("TkDefaultFont")
-    default_font.config(family="Courier New", size=EM)
+    default_font.config(family="Courier New", size=EM[0])
     root.option_add("*Font", default_font)
 
     # Canvas that serves as "desktop".
@@ -223,9 +241,10 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     root.update()
 
     chatlog, _ginput, _gprint = init_chat_win(canvas, loop)
-    win2 = create_window(canvas, "Image", (0, 0, 60 * EM, 80 * EM))
-    img2 = Image(win2, img_fp=f"{ASSETS_DIR}/sutd.png")
-    img2.pack(fill="both", expand=True)
+    webcam_bbox = (0, 0, 60 * EM[0], 60 * EM[0])
+    webcam = create_window(canvas, "Face Cam", webcam_bbox)
+    face_img = Image(webcam, img_fp=f"{ASSETS_DIR}/sutd.png")
+    face_img.pack(fill="both", expand=True)
 
     _G = Controller(
         root=root,
