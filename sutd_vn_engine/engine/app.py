@@ -13,6 +13,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable, Dict, NamedTuple
 
 from .chat import ChatLog
+from .image import Image
 from .utils import EM, LOOP_WAIT, bind_toggle, wait_coro
 from .windowing import create_window
 
@@ -223,7 +224,9 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     root.update()
 
     chatlog, _ginput, _gprint = init_chat_win(canvas, loop)
-    create_window(canvas, "Image", (0, 0, 60 * EM, 80 * EM))
+    win2 = create_window(canvas, "Image", (0, 0, 60 * EM, 80 * EM))
+    img2 = Image(win2, img_fp="sutd.png")
+    img2.pack(fill="both", expand=True)
 
     _G = Controller(
         root=root,
