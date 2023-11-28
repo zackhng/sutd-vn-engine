@@ -4,9 +4,9 @@ import asyncio
 import tkinter as tk
 from typing import Coroutine
 
-__all__ = ["LOOP_WAIT", "EM", "LORUM", "wait_coro", "bind_toggle"]
+__all__ = ["LOOP_WAIT", "EM", "LORUM", "wait_coro", "bind_toggle", "add_bind_tag"]
 
-LOOP_WAIT = 0.015
+LOOP_WAIT = 0.008
 """60Hz loop sleep. Sleep is needed in asyncio to process other events."""
 EM = 10  # In px.
 """Global size used for fonts, padding, and so on."""
@@ -73,3 +73,14 @@ def bind_toggle(button: tk.Button, boolvar: tk.BooleanVar, onlabel: str, offlabe
 
     button.config(command=_toggle)
     _update()
+
+
+def add_bind_tag(tag: str, *widgets: tk.Widget):
+    """Add bind tag to each widget.
+
+    Args:
+        tag (str): Tag to add.
+        *widgets (tk.Widget): Widgets to add tag to.
+    """
+    for widget in widgets:
+        widget.bindtags((tag,) + widget.bindtags())

@@ -33,7 +33,9 @@ class ChatLog(ttk.Labelframe):
             msgcols (int, optional): Column span of messages. Defaults to 22.
             **kwargs: Keyword arguments for ttk.Labelframe.
         """
-        super(ChatLog, self).__init__(master, text="Chat Log", **kwargs)
+        super(ChatLog, self).__init__(
+            master, text="Chat Log", class_="ChatLog", **kwargs
+        )
         self.messages: List[dict] = []
         self.ncols = ncols
         self.msgcols = msgcols
