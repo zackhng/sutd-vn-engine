@@ -13,9 +13,9 @@ __all__ = ["ChatLog"]
 class ChatLog(ttk.Labelframe):
     """Chat Log GUI."""
 
-    def __init__(self, master=None, ncols=32, msgcols=22):
+    def __init__(self, master=None, ncols=32, msgcols=22, **kwargs):
         """Constructor."""
-        super(ChatLog, self).__init__(master=master, text="Chat Log")
+        super(ChatLog, self).__init__(master, text="Chat Log", **kwargs)
         self.messages = []
         self.ncols = ncols
         self.msgcols = msgcols
@@ -93,10 +93,9 @@ class ChatLog(ttk.Labelframe):
         else:
             raise ValueError(f"Side {side} not supported.")
 
-        textvar = tk.StringVar(value=msg)
-        message = ttk.Label(
-            self.inner, textvariable=textvar, style=style, anchor=anchor
-        )
+        message = ttk.Label(self.inner, style=style, anchor=anchor)
+        textvar = tk.StringVar(message, value=msg)
+        message.config(textvariable=textvar)
         message.grid(**self.placement, row=row, column=col)
 
         self.messages.append(dict(name=name, side=side, var=textvar, widget=message))

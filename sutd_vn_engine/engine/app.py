@@ -43,26 +43,26 @@ def create_input_function(chatlog: ChatLog, inputbox: ttk.Entry):
         nonlocal triggered
         text = str(__prompt)
         logging.info(f"Wait prompt: {text}")
-        inputbox.config(state=tk.NORMAL)
-        chatlog.add_msg(text, name="", side=tk.CENTER)
+        inputbox.config(state="normal")
+        chatlog.add_msg(text, name="", side="center")
         while not triggered:
             await asyncio.sleep(LOOP_WAIT)
         triggered = False
         reply = inputbox.get()
         inputbox.delete("0", "end")
-        inputbox.config(state=tk.DISABLED)
+        inputbox.config(state="disabled")
         logging.info(f"Prompt: {text}, Return: {reply}")
         return reply
 
     inputbox.bind("<Return>", _trigger)
-    inputbox.config(state=tk.DISABLED)
+    inputbox.config(state="disabled")
     logging.info("Input function binded.")
     return _input
 
 
 def create_print_function(chatlog: ChatLog):
     """Emulates print function using GUI elements."""
-    skipvar = tk.BooleanVar()
+    skipvar = tk.BooleanVar(chatlog)
 
     async def _print(*values, sep=" "):
         text = sep.join(map(str, values))
