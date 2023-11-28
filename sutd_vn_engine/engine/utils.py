@@ -2,12 +2,25 @@
 
 import asyncio
 import tkinter as tk
+from pathlib import Path
 from typing import Coroutine
 
-__all__ = ["LOOP_WAIT", "EM", "LORUM", "wait_coro", "bind_toggle", "add_bind_tag"]
+import sutd_vn_engine.assets
+
+__all__ = [
+    "LOOP_WAIT",
+    "EM",
+    "LORUM",
+    "ASSETS_DIR",
+    "wait_coro",
+    "bind_toggle",
+    "add_bind_tag",
+    "set_canvas_bg",
+]
 
 LOOP_WAIT = 0.008
 """60Hz loop sleep. Sleep is needed in asyncio to process other events."""
+# TODO: Rescale based on DPI of screen.
 EM = 10  # In px.
 """Global size used for fonts, padding, and so on."""
 LORUM = (
@@ -18,6 +31,8 @@ LORUM = (
     "condimentum nunc eget, convallis ante. Quisque feugiat magna massa, sit "
     "amet consectetur velit iaculis non. Aliquam nec."
 )
+ASSETS_DIR = Path(sutd_vn_engine.assets.__path__[0]).absolute()
+"""Path to `sutd_vn_engine/assets` folder."""
 
 
 def wait_coro(coro: Coroutine, loop: asyncio.AbstractEventLoop):
@@ -84,3 +99,24 @@ def add_bind_tag(tag: str, *widgets: tk.Widget):
     """
     for widget in widgets:
         widget.bindtags((tag,) + widget.bindtags())
+
+
+def set_canvas_bg(canvas: tk.Canvas, image_path: str):
+    """Set background image of `canvas` to `image_path`."""
+    img = tk.PhotoImage(master=canvas, file=image_path)
+    img_id = canvas.create_image(0, 0, image=img, anchor="center")
+
+    def _recale_bg(event: tk.Event):
+        """Re-scale background image to fit canvas."""
+        # NOTE: Tkinter only supports integer zooming, this hurts me.
+        if event.width > img.width():
+            new_img = img.zoom(min(round(event.width / img.width()), 1))
+        else:
+            new_img = img.subsample(min(round(img.width() / event.width), 1))
+
+        # Set new background & center it.
+        canvas.itemconfig(img_id, image=new_img)
+        canvas.coords(img_id, event.width // 2, event.height // 2)
+        setattr(canvas, "bg_img", new_img)  # Prevent GC.
+
+    canvas.bind("<Configure>", _recale_bg, "+")

@@ -14,7 +14,7 @@ from typing import Any, Callable, Dict, NamedTuple
 
 from .chat import ChatLog
 from .image import Image
-from .utils import EM, LOOP_WAIT, bind_toggle, wait_coro
+from .utils import ASSETS_DIR, EM, LOOP_WAIT, bind_toggle, set_canvas_bg, wait_coro
 from .windowing import create_window
 
 __all__ = ["Controller", "create_app", "run_story"]
@@ -138,8 +138,8 @@ def create_print_function(chatlog: ChatLog):
 
 def init_taskbar(root: tk.Misc):
     """Create taskbar layout in a `tk.Frame` as child of `root`."""
-    taskbar = tk.Frame(root, background="lightgray", relief="raised", bd=2)
-    start_btn = tk.Button(taskbar, text="⊞", font="Arial 20")
+    taskbar = tk.Frame(root, bg="#245dda", relief="raised", bd=2)
+    start_btn = tk.Button(taskbar, bg="#81c046", text="⊞", font="Arial 20")
     start_btn.pack(side="left")
 
     return taskbar
@@ -163,11 +163,8 @@ def init_chat_win(canvas: tk.Canvas, loop: asyncio.AbstractEventLoop):
             ChatLog widget, emulated `input()` function, emulated `print()` function.
     """
     # Create widgets.
-    chat_win = create_window(
-        canvas,
-        "WhatsUp",
-        (canvas.winfo_width(), canvas.winfo_height(), 60 * EM, 80 * EM),
-    )
+    bbox = (canvas.winfo_width() // 2, 0, 60 * EM, 80 * EM)
+    chat_win = create_window(canvas, "Bubble", bbox)
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
     skipbtn = tk.Button(chat_win, text="Skip")
@@ -213,7 +210,9 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     root.option_add("*Font", default_font)
 
     # Canvas that serves as "desktop".
-    canvas = tk.Canvas(root, background="pink")
+    canvas = tk.Canvas(root, bg="#e28de2")
+    set_canvas_bg(canvas, f"{ASSETS_DIR}/windoes_background.png")
+
     taskbar = init_taskbar(root)
 
     canvas.pack(fill="both", side="top", expand=True)
@@ -225,7 +224,7 @@ def init_gui(loop: asyncio.AbstractEventLoop):
 
     chatlog, _ginput, _gprint = init_chat_win(canvas, loop)
     win2 = create_window(canvas, "Image", (0, 0, 60 * EM, 80 * EM))
-    img2 = Image(win2, img_fp="sutd.png")
+    img2 = Image(win2, img_fp=f"{ASSETS_DIR}/sutd.png")
     img2.pack(fill="both", expand=True)
 
     _G = Controller(
