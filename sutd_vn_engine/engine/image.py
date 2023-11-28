@@ -2,7 +2,6 @@
 
 import logging
 import tkinter as tk
-import tkinter.ttk as ttk
 from typing import Optional
 
 __all__ = ["Image"]

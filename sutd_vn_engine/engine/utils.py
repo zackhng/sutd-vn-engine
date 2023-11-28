@@ -89,6 +89,9 @@ def bind_toggle(button: tk.Button, boolvar: tk.BooleanVar, onlabel: str, offlabe
     button.config(command=_toggle)
     _update()
 
+    # Update icon when boolvar is changed.
+    boolvar.trace_add("write", lambda *_: _update())
+
 
 def add_bind_tag(tag: str, *widgets: tk.Widget):
     """Add bind tag to each widget.

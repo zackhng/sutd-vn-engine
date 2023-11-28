@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from typing import Dict, Tuple
 from uuid import uuid4
 
-from .utils import EM, add_bind_tag
+from .utils import EM, add_bind_tag, bind_toggle
 
 __all__ = ["create_window"]
 
@@ -29,7 +29,7 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
     x, y, w, h = bbox
     bar_h = 4 * EM[0]  # Height of window bar.
     grip_s = 1.5 * EM[0]  # Size of window grip.
-    shaded = False  # Whether window is shaded.
+    shaded = tk.BooleanVar()  # Whether window is shaded.
 
     # Add/retrieve map of canvas ids to windowed frames to canvas.
     win_id_map: Dict[int, tk.Frame] = getattr(canvas, "win_id_map", {})
@@ -40,6 +40,7 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
     content = tk.Frame(win, bd=2, relief="ridge")
     bar = tk.Frame(win, bd=2, bg="lightblue", relief="raised")
     tlabel = tk.Label(bar, text=title, font=f"Verdana {EM[0]}", bg="lightblue")
+    tshadebtn = tk.Button(bar, font=f"CourierNew {EM[0]}", bg="lightblue")
     grip = ttk.Sizegrip(win)
 
     def _layout_widgets():
@@ -52,6 +53,7 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
 
     _layout_widgets()
     tlabel.pack(side="left")
+    tshadebtn.pack(side="right")
     win_id = canvas.create_window((x, y), window=win, anchor="nw", tags=WIN_TAG)
 
     # Add window to id map.
@@ -68,10 +70,14 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
         y -= bar_h // 2
         canvas.coords(win_id, x, y)
 
-    def _shade_win(_):
-        """Shade window."""
-        nonlocal shaded
-        if shaded := not shaded:
+    def _toggle_shade(_):
+        """Toggle window shade."""
+        shaded.set(not shaded.get())
+        _shade_win()
+
+    def _shade_win():
+        """Update window shade."""
+        if shaded.get():
             content.place(height=0)
             win.config(height=bar_h)
         else:
@@ -126,7 +132,11 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
     win.bind_class(bar_tag, "<B1-Motion>", _move_win)
 
     # Shade window on double click.
-    win.bind_class(bar_tag, "<Double-Button-1>", _shade_win)
+    win.bind_class(bar_tag, "<Double-Button-1>", _toggle_shade)
+    shaded.trace_add("write", lambda *_: _shade_win())
+
+    # Shade window on button click.
+    bind_toggle(tshadebtn, shaded, "🗖", "🗕")
 
     # Raise window on click.
     # NOTE: This handler is overwritten each time. It's fine.
