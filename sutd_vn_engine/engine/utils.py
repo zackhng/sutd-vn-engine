@@ -110,9 +110,9 @@ def set_canvas_bg(canvas: tk.Canvas, image_path: str):
         """Re-scale background image to fit canvas."""
         # NOTE: Tkinter only supports integer zooming, this hurts me.
         if event.width > img.width():
-            new_img = img.zoom(min(round(event.width / img.width()), 1))
+            new_img = img.zoom(max(round(event.width / img.width()), 1))
         else:
-            new_img = img.subsample(min(round(img.width() / event.width), 1))
+            new_img = img.subsample(max(round(img.width() / event.width), 1))
 
         # Set new background & center it.
         canvas.itemconfig(img_id, image=new_img)
