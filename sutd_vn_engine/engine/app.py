@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import time
 
 # https://docs.python.org/3/library/tk.html
 # https://docs.python.org/3/library/tkinter.ttk.html
@@ -35,6 +36,8 @@ class Controller(NamedTuple):
     """Function to emulate `print()`."""
     set_speaker: Callable
     """Function to set name & position of subsequent chat bubbles."""
+    show_face: Callable[[str], None]
+    """Function to set webcam window image."""
 
 
 def create_input_function(chatlog: ChatLog, inputbox: tk.Entry):
@@ -136,6 +139,16 @@ def create_print_function(chatlog: ChatLog):
     return _print, skipvar
 
 
+def create_face_function(face_img: Image):
+    """Function to set webcam window image."""
+
+    def _face(img_name: str):
+        """Set webcam window image."""
+        face_img.change_img(f"{ASSETS_DIR}/{img_name}.png")
+
+    return _face
+
+
 def init_taskbar(root: tk.Misc):
     """Create taskbar layout in a `tk.Frame` as child of `root`."""
     taskbar = tk.Frame(root, bg="#245dda", relief="raised", bd=2)
@@ -146,6 +159,18 @@ def init_taskbar(root: tk.Misc):
         text="Start",
         font=f"Verdana {EM[0]*1.4:.0f} italic",
     )
+    time_label = tk.Label(
+        taskbar, bg="#548dfa", fg="white", font=f"Verdana {0.9*EM[0]:.0f}"
+    )
+
+    def _time_update():
+        """Update time label."""
+        time_label.config(text=time.strftime("%H:%M:%S"))
+        time_label.after(1000, _time_update)
+
+    _time_update()
+
+    time_label.pack(side="right", fill="y")
     start_btn.pack(side="left")
 
     return taskbar
@@ -243,7 +268,7 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     root.update()
 
     chatlog, _ginput, _gprint = init_chat_win(canvas, loop)
-    webcam_bbox = (0, 0, 60 * EM[0], 60 * EM[0])
+    webcam_bbox = (2 * EM[0], 2 * EM[0], 400, 400)
     webcam = create_window(canvas, "Face Cam", webcam_bbox, disable_resize=True)
     face_img = Image(webcam, img_fp=f"{ASSETS_DIR}/sutd.png")
     face_img.pack(fill="both", expand=True)
@@ -254,6 +279,7 @@ def init_gui(loop: asyncio.AbstractEventLoop):
         input=_ginput,
         print=_gprint,
         set_speaker=chatlog.set_speaker,
+        show_face=create_face_function(face_img),
     )
     logging.info("GUI initialized.")
     return _G

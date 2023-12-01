@@ -126,6 +126,7 @@ class ChatLog(ttk.Labelframe):
         name = self.name if name is None else name
         side = self.side if side is None else side
         msg = f"{name}:\n{msg}" if name else msg
+        msg = msg.strip()
 
         # Calculate grid placement & style of message.
         row = len(self.messages)
@@ -174,7 +175,7 @@ class ChatLog(ttk.Labelframe):
         msg: str,
         name: Optional[str] = None,
         side: Optional[_MsgSide] = None,
-        delay: int = 10,
+        delay: int = 30,
     ):
         """Add a message to the chat log asynchronously with typing animation.
 
