@@ -13,7 +13,14 @@ WIN_TAG = "Window"
 """Canvas tag for all windowed frames."""
 
 
-def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]):
+def create_window(
+    canvas: tk.Canvas,
+    title: str,
+    bbox: Tuple[int, int, int, int],
+    *,
+    disable_resize: bool = False,
+    enable_close: bool = False,
+):
     """Create a windowed frame.
 
     Note that w & h specifies the internal frame size, excluding the window bar.
@@ -22,6 +29,8 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
         canvas (tk.Canvas): Canvas to create window in.
         title (str): Window title.
         bbox (Tuple[int, int, int, int]): XYWH bounding box of window.
+        disable_resize (bool, optional): Whether to disable window resizing. Defaults to False.
+        enable_close (bool, optional): Whether to disable window closing. Defaults to False.
 
     Returns:
         tk.Frame: Frame widget to put window contents in.
@@ -41,6 +50,9 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
     bar = tk.Frame(win, bd=2, bg="lightblue", relief="raised")
     tlabel = tk.Label(bar, text=title, font=f"Verdana {EM[0]}", bg="lightblue")
     tshadebtn = tk.Button(bar, font=f"CourierNew {EM[0]}", bg="lightblue")
+    tclosebtn = tk.Button(
+        bar, text="✕", fg="red", font=f"CourierNew {EM[0]}", bg="lightblue"
+    )
     grip = ttk.Sizegrip(win)
 
     def _layout_widgets():
@@ -53,6 +65,7 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
 
     _layout_widgets()
     tlabel.pack(side="left")
+    tclosebtn.pack(side="right")
     tshadebtn.pack(side="right")
     win_id = canvas.create_window((x, y), window=win, anchor="nw", tags=WIN_TAG)
 
@@ -69,11 +82,6 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
         x -= w // 2
         y -= bar_h // 2
         canvas.coords(win_id, x, y)
-
-    def _toggle_shade(_):
-        """Toggle window shade."""
-        shaded.set(not shaded.get())
-        _shade_win()
 
     def _shade_win():
         """Update window shade."""
@@ -121,6 +129,10 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
         win.config(width=w, height=h + bar_h)
         _layout_widgets()
 
+    def _close_win():
+        """Close window."""
+        canvas.itemconfig(win_id, state="hidden")
+
     # Add bind tag for window bar.
     bar_tag = uuid4().hex
     add_bind_tag(bar_tag, bar, tlabel)
@@ -131,12 +143,9 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
     # Move window on drag.
     win.bind_class(bar_tag, "<B1-Motion>", _move_win)
 
-    # Shade window on double click.
-    win.bind_class(bar_tag, "<Double-Button-1>", _toggle_shade)
-    shaded.trace_add("write", lambda *_: _shade_win())
-
     # Shade window on button click.
     bind_toggle(tshadebtn, shaded, "🗖", "🗕")
+    shaded.trace_add("write", lambda *_: _shade_win())
 
     # Raise window on click.
     # NOTE: This handler is overwritten each time. It's fine.
@@ -146,6 +155,13 @@ def create_window(canvas: tk.Canvas, title: str, bbox: Tuple[int, int, int, int]
     grip.bindtags((str(grip), ".", "all"))
     # Resize window on dragging grip.
     grip.bind("<B1-Motion>", _resize_win)
+    if disable_resize:
+        grip.destroy()
+
+    # Close window on button click.
+    tclosebtn.config(command=_close_win)
+    if not enable_close:
+        tclosebtn.destroy()
 
     # Remove window from id map on destroy.
     win.bind("<Destroy>", lambda _: win_id_map.pop(win_id, None))
