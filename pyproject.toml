@@ -10,6 +10,7 @@ python = "3.11.*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.5"
+pyinstaller = "^6.2.0"
 
 [tool.ruff.lint]
 select = ["D"]
