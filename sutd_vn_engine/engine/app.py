@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import random
 import time
 
 # https://docs.python.org/3/library/tk.html
@@ -38,14 +39,21 @@ class Controller(NamedTuple):
     """Function to set name & position of subsequent chat bubbles."""
     show_face: Callable[[str], None]
     """Function to set webcam window image."""
+    show_bg: Callable[[str], None]
+    """Function to set background image."""
+    show_jumpscare: Callable
+    """Function to show jumpscare."""
 
 
-def create_input_function(chatlog: ChatLog, inputbox: tk.Entry):
+def create_input_function(
+    loop: asyncio.AbstractEventLoop, chatlog: ChatLog, inputbox: tk.Entry
+):
     """Emulates standard `input()` function using widgets.
 
     Input is triggered by pressing the Enter key inside `inputbox`.
 
     Args:
+        loop (asyncio.AbstractEventLoop): Main thread event loop.
         chatlog (ChatLog): ChatLog widget to print to.
         inputbox (tk.Entry): Entry widget for input.
 
@@ -82,19 +90,24 @@ def create_input_function(chatlog: ChatLog, inputbox: tk.Entry):
         logging.info(f"Prompt: {text}, Return: {reply}")
         return reply
 
+    def _ginput(*args, **kwargs):
+        """Synchronous wrapper for `input()`."""
+        return wait_coro(_input(*args, **kwargs), loop)
+
     # Disable input until `input()` is called.
     inputbox.config(state="disabled")
     inputbox.bind("<Return>", _trigger)
     logging.info("Input function binded.")
-    return _input
+    return _ginput
 
 
-def create_print_function(chatlog: ChatLog):
+def create_print_function(loop: asyncio.AbstractEventLoop, chatlog: ChatLog):
     """Emulates print function using GUI elements.
 
     By default, print is animated. To skip animation, `skipvar.set(True)`.
 
     Args:
+        loop (asyncio.AbstractEventLoop): Main thread event loop.
         chatlog (ChatLog): ChatLog widget to print to.
 
     Returns:
@@ -136,17 +149,90 @@ def create_print_function(chatlog: ChatLog):
             task_print.cancel()
         await asyncio.gather(task_cancel, task_print)
 
-    return _print, skipvar
+    def _gprint(*args, **kwargs):
+        """Synchronous wrapper for `print()`."""
+        return wait_coro(_print(*args, **kwargs), loop)
+
+    return _gprint, skipvar
 
 
-def create_face_function(face_img: Image):
+def create_face_function(loop: asyncio.AbstractEventLoop, face_img: Image):
     """Function to set webcam window image."""
 
-    def _face(img_name: str):
+    # NOTE: I had to use async here to schedule the function on the main GUI thread.
+    async def _show_face(img_name: str):
         """Set webcam window image."""
         face_img.change_img(f"{ASSETS_DIR}/{img_name}.png")
 
-    return _face
+    def _gshow_face(img_name: str):
+        """Synchronous wrapper for `show_face()`."""
+        # NOTE: Had to be done to schedule image change on main GUI thread.
+        return wait_coro(_show_face(img_name), loop)
+
+    return _gshow_face
+
+
+def create_bg_function(loop: asyncio.AbstractEventLoop, canvas: tk.Canvas):
+    """Function to set background image."""
+
+    async def _show_bg(img_name: str):
+        """Set background image."""
+        set_canvas_bg(canvas, f"{ASSETS_DIR}/{img_name}.png")
+
+    def _gshow_bg(img_name: str):
+        """Synchronous wrapper for `show_bg()`."""
+        # NOTE: Had to be done to schedule image change on main GUI thread.
+        return wait_coro(_show_bg(img_name), loop)
+
+    return _gshow_bg
+
+
+def create_jumpscare_function(loop: asyncio.AbstractEventLoop, canvas: tk.Canvas):
+    """Function to jumpscare."""
+
+    async def _show_jumpscare():
+        """Set background image."""
+        memory_leak = []
+        max_windows = 69
+        window_chance = 1.0
+        window_spawn_time = 1.0
+
+        start_time = time.time()
+        while True:
+            set_canvas_bg(canvas, f"{ASSETS_DIR}/face_eldritch.png")
+            await asyncio.sleep(0.02)
+            set_canvas_bg(canvas, f"{ASSETS_DIR}/face_obsessed2.png")
+            await asyncio.sleep(0.001)
+
+            if time.time() - start_time < window_spawn_time:
+                continue
+
+            if random.random() < window_chance:
+                x, y = (
+                    random.randint(0, canvas.winfo_width()),
+                    random.randint(0, canvas.winfo_height()),
+                )
+                win = create_window(
+                    canvas,
+                    f"HELLO{max_windows-len(memory_leak)}",
+                    (x, y, 400, 400),
+                    enable_close=True,
+                    disable_resize=True,
+                )
+                img = Image(win, img_fp=f"{ASSETS_DIR}/face_jumpscare.png")
+                img.pack(fill="both", expand=True)
+                memory_leak.append((img, win))
+
+            if len(memory_leak) > max_windows:
+                break
+        raise KeyboardInterrupt
+
+    def _gshow_jumpscare():
+        """Synchronous wrapper for `show_jumpscare()`."""
+        # NOTE: Had to be done to schedule image change on main GUI thread.
+        return wait_coro(_show_jumpscare(), loop)
+
+    return _gshow_jumpscare
 
 
 def init_taskbar(root: tk.Misc):
@@ -211,19 +297,11 @@ def init_chat_win(canvas: tk.Canvas, loop: asyncio.AbstractEventLoop):
     textbox.grid(sticky="nsew", row=11, column=2, columnspan=10)
 
     # Create emulated `input()` and `print()` functions.
-    _input = create_input_function(chatlog, textbox)
-    _print, skipvar = create_print_function(chatlog)
-
-    def _ginput(*args, **kwargs):
-        """Synchronous wrapper for `input()`."""
-        return wait_coro(_input(*args, **kwargs), loop)
-
-    def _gprint(*args, **kwargs):
-        """Synchronous wrapper for `print()`."""
-        return wait_coro(_print(*args, **kwargs), loop)
+    _input = create_input_function(loop, chatlog, textbox)
+    _print, skipvar = create_print_function(loop, chatlog)
 
     bind_toggle(skipbtn, skipvar, "Skipping", "Skip")
-    return chatlog, _ginput, _gprint
+    return chatlog, _input, _print
 
 
 def init_gui(loop: asyncio.AbstractEventLoop):
@@ -245,9 +323,9 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     elif screen_h >= 1440:
         EM[0] = 10
     elif screen_h >= 1080:
-        EM[0] = 8
+        EM[0] = 10
     else:
-        EM[0] = 8
+        EM[0] = 10
 
     # Configure global font.
     default_font = tkFont.nametofont("TkDefaultFont")
@@ -257,6 +335,14 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     # Canvas that serves as "desktop".
     canvas = tk.Canvas(root, bg="#e28de2")
     set_canvas_bg(canvas, f"{ASSETS_DIR}/windoes_background.png")
+    set_canvas_bg(
+        canvas,
+        f"{ASSETS_DIR}/desktop_icons.png",
+        xratio=0.02,
+        yratio=0.02,
+        resize=False,
+        anchor="nw",
+    )
 
     taskbar = init_taskbar(root)
 
@@ -279,7 +365,9 @@ def init_gui(loop: asyncio.AbstractEventLoop):
         input=_ginput,
         print=_gprint,
         set_speaker=chatlog.set_speaker,
-        show_face=create_face_function(face_img),
+        show_face=create_face_function(loop, face_img),
+        show_bg=create_bg_function(loop, canvas),
+        show_jumpscare=create_jumpscare_function(loop, canvas),
     )
     logging.info("GUI initialized.")
     return _G
