@@ -169,7 +169,7 @@ def init_chat_win(canvas: tk.Canvas, loop: asyncio.AbstractEventLoop):
             ChatLog widget, emulated `input()` function, emulated `print()` function.
     """
     # Create widgets.
-    bbox = (canvas.winfo_width() // 2, 0, 60 * EM[0], 80 * EM[0])
+    bbox = (canvas.winfo_width() // 2 - 30 * EM[0], 5 * EM[0], 70 * EM[0], 70 * EM[0])
     chat_win = create_window(canvas, "Bubble", bbox)
     chatlog = ChatLog(chat_win)
     textbox = ttk.Entry(chat_win)
@@ -209,6 +209,8 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     """
     root = tk.Tk()
     root.title("SUTD VN")
+    root.attributes("-fullscreen", True)
+    root.update_idletasks()
 
     # NOTE: Dirty hack to change global scale.
     # root.tk.call("tk", "scaling", 2.0) # Doesn't work.
@@ -218,9 +220,9 @@ def init_gui(loop: asyncio.AbstractEventLoop):
     elif screen_h >= 1440:
         EM[0] = 10
     elif screen_h >= 1080:
-        EM[0] = 7
+        EM[0] = 8
     else:
-        EM[0] = 5
+        EM[0] = 8
 
     # Configure global font.
     default_font = tkFont.nametofont("TkDefaultFont")
@@ -242,7 +244,7 @@ def init_gui(loop: asyncio.AbstractEventLoop):
 
     chatlog, _ginput, _gprint = init_chat_win(canvas, loop)
     webcam_bbox = (0, 0, 60 * EM[0], 60 * EM[0])
-    webcam = create_window(canvas, "Face Cam", webcam_bbox)
+    webcam = create_window(canvas, "Face Cam", webcam_bbox, disable_resize=True)
     face_img = Image(webcam, img_fp=f"{ASSETS_DIR}/sutd.png")
     face_img.pack(fill="both", expand=True)
 

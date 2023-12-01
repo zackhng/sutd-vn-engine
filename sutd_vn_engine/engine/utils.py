@@ -18,7 +18,7 @@ __all__ = [
     "set_canvas_bg",
 ]
 
-LOOP_WAIT = 0.008
+LOOP_WAIT = 1 / 60
 """60Hz loop sleep. Sleep is needed in asyncio to process other events."""
 # NOTE: Put in a list to be mutable.
 EM = [2]  # In px.
