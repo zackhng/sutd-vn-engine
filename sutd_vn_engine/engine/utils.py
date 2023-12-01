@@ -104,22 +104,37 @@ def add_bind_tag(tag: str, *widgets: tk.Widget):
         widget.bindtags((tag,) + widget.bindtags())
 
 
-def set_canvas_bg(canvas: tk.Canvas, image_path: str):
+all_images = []
+"""Prevent GC of images by storing them in a global list."""
+
+
+def set_canvas_bg(
+    canvas: tk.Canvas,
+    image_path: str,
+    xratio: float = 0.5,
+    yratio: float = 0.5,
+    resize: bool = True,
+    anchor: str = "center",
+):
     """Set background image of `canvas` to `image_path`."""
     img = tk.PhotoImage(master=canvas, file=image_path)
-    img_id = canvas.create_image(0, 0, image=img, anchor="center")
+    img_id = canvas.create_image(0, 0, image=img, anchor=anchor)
 
-    def _recale_bg(event: tk.Event):
+    def _recale_bg(_):
         """Re-scale background image to fit canvas."""
+        width, height = canvas.winfo_width(), canvas.winfo_height()
         # NOTE: Tkinter only supports integer zooming, this hurts me.
-        if event.width > img.width():
-            new_img = img.zoom(max(round(event.width / img.width()), 1))
+        if not resize:
+            new_img = img
+        elif width > img.width():
+            new_img = img.zoom(max(round(width / img.width()), 1))
         else:
-            new_img = img.subsample(max(round(img.width() / event.width), 1))
+            new_img = img.subsample(max(round(img.width() / width), 1))
 
         # Set new background & center it.
         canvas.itemconfig(img_id, image=new_img)
-        canvas.coords(img_id, event.width // 2, event.height // 2)
-        setattr(canvas, "bg_img", new_img)  # Prevent GC.
+        canvas.coords(img_id, int(width * xratio), int(height * yratio))
+        all_images.append(new_img)
 
+    _recale_bg(None)
     canvas.bind("<Configure>", _recale_bg, "+")
