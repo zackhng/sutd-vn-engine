@@ -5,7 +5,8 @@
 ##################
 # Import anything you need, like math.
 
-from .engine import Controller, run_story
+from sutd_vn_engine.engine import Controller, run_story
+from sutd_vn_engine.scenarios import *
 
 
 def event_example(G: Controller):
@@ -32,21 +33,21 @@ def event_example(G: Controller):
     # G.show_face("sparkling_eyes.png")
 
     # [Example] Waiting for valid user input to set flag & proceed.
-    while G.flags_dict.get("ACCEPTED_JOB") is None:
+    while G.flags_dict.get("ACCEPT_JOB") is None:
         reply = G.input(f"So {G.flags_dict['USERNAME']}, do you accept the job (y/n)?")
-        reply = reply.lower()
-        if reply[0] == "y":
-            G.flags_dict["ACCEPTED_JOB"] = True
-        elif reply[0] == "n":
-            G.flags_dict["ACCEPTED_JOB"] = False
+        reply = reply.lower()[:1]
+        if reply == "y":
+            G.flags_dict["ACCEPT_JOB"] = True
+        elif reply == "n":
+            G.flags_dict["ACCEPT_JOB"] = False
 
-    # [Example]: Changing the chat messages based on flags set within scenario.
-    if G.flags_dict["ACCEPTED_JOB"]:
+    # [Example] Changing the chat messages based on flags set within scenario.
+    if G.flags_dict["ACCEPT_JOB"]:
         G.print("Great! See you at the office tomorrow.")
     else:
         G.print("Oh well, maybe next time.")
 
-    # [Example]: Changing the chat messages based on flags from previous scenarios.
+    # [Example] Changing the chat messages based on flags from previous scenarios.
     if G.flags_dict.get("ACCEPTED_PET_CAT"):
         G.print("You also got a cat!")
 
@@ -61,15 +62,27 @@ def event_your_event(G: Controller):
 
 def story(G: Controller):
     """Storyline."""
+    G.flags_dict["USERNAME"] = "Queen Elizabeth II"
+    G.show_face("background")
+    event_intro(G)
+    event_bubble(G)
+    event_job(G)
+    event_social_media(G)
+    event_dox(G)
+    event_friend_intruder(G)
+    event_persuade_friend(G)
+    event_intruder(G)
+    event_ending(G)
+
     ##################
     # YOUR CODE HERE #
     ##################
     # Test any flags your scenario relies on by setting them here beforehand.
-    G.flags_dict["ACCEPTED_PET_CAT"] = True
-    event_your_event(G)
+    # G.flags_dict["ACCEPTED_PET_CAT"] = True
+    # event_your_event(G)
 
     # Comment out below example once satisfied.
-    event_example(G)
+    # event_example(G)
 
 
 if __name__ == "__main__":
