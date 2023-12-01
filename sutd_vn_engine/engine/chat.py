@@ -1,6 +1,7 @@
 """ChatLog widget."""
 
 import asyncio
+import sys
 import tkinter as tk
 import tkinter.font as tkFont
 import tkinter.ttk as ttk
@@ -66,7 +67,40 @@ class ChatLog(ttk.Labelframe):
             canvas.coords(inner_id, 0, 0)
             canvas.itemconfig(inner_id, width=event.width)
 
+        def _on_canvas_mousewheel(event: tk.Event):
+            """Scroll canvas when mousewheel is used."""
+            # Get coords.
+            cx, cy = canvas.winfo_pointerxy()
+            cx -= canvas.winfo_rootx()
+            cy -= canvas.winfo_rooty()
+
+            # Check if mouse is over inner frame.
+            x1, y1, x2, y2 = canvas.bbox(inner_id)
+            if cx < x1 or cx > x2 or cy < y1 or cy > y2:
+                return
+
+            # Calculate scroll delta.
+            delta = event.delta or 1
+            sign = delta // abs(delta)
+            if sys.platform == "darwin":
+                delta = max(1, abs(delta))
+                delta *= -sign
+            elif sys.platform == "win32":
+                delta = max(1, abs(delta) // 120)
+                delta *= -sign
+            elif sys.platform == "linux":
+                delta = max(1, abs(delta) // 120)
+                if event.num == 4:
+                    delta *= -1
+
+            canvas.yview_scroll(delta, "units")
+
         canvas.bind("<Configure>", _on_canvas_configure)
+        if sys.platform == "linux":
+            canvas.bind_all("<Button-4>", _on_canvas_mousewheel)
+            canvas.bind_all("<Button-5>", _on_canvas_mousewheel)
+        else:
+            canvas.bind_all("<MouseWheel>", _on_canvas_mousewheel)
 
         self.canvas = canvas
         self.inner = inner
