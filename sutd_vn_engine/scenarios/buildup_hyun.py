@@ -6,12 +6,13 @@ __all__ = ["event_social_media", "event_dox"]
 
 
 def event_social_media(G: Controller):
-    """Example event."""
+    """Social Media Event"""
     if G.flags_dict.get("GAMEOVER"):
         return
     G.set_speaker("", "center")
     G.print("1 month later")
     G.set_speaker("Narrator", "left")
+    """Changing facial expression to fit the sanity level of Character"""
     G.show_face("face_interested")
     G.print(
         "Now you are a electric fan of JH. You have been following his social media "
@@ -34,6 +35,7 @@ def event_social_media(G: Controller):
     )
     # Split very long text across multiple lines.
     G.set_speaker("You", "right")
+    """Changing facial expression to fit the sanity level of Character"""
     G.show_face("face_obsessed1")
     G.print(
         "Hm? whats this? (⚆_⚆) "
@@ -63,6 +65,7 @@ def event_social_media(G: Controller):
         reply = G.input(f"Should I defend JH? (y/n)?")
         reply = reply.lower()[:1]
         if reply == "y":
+            """Returning REACT_SNS True/False to trigger or skip future events"""
             G.flags_dict["REACT_SNS"] = True
         elif reply == "n":
             G.flags_dict["REACT_SNS"] = False
@@ -71,6 +74,7 @@ def event_social_media(G: Controller):
     if G.flags_dict["REACT_SNS"]:
         G.print("Yes! He deserves to be protected at all times. ╰༼=ಠਊಠ=༽╯ ")
     else:
+        """Changing facial expressions to fit the insanity level of character"""
         G.show_face("face_interested")
         G.print("Oh well... I have better things to do.")
 
@@ -83,10 +87,12 @@ def event_social_media(G: Controller):
 
 def event_dox(G: Controller):
     """DOX_HATER'S_FAMILY."""
+    """Skip event if flags return True for GAMEOVER or REACT_SNS return False"""
     if G.flags_dict.get("GAMEOVER") or not G.flags_dict.get("REACT_SNS"):
         return
 
     G.set_speaker("You", "right")
+    """Changing facial expression to fit the insanity level of Character"""
     G.show_face("face_obsessed2")
     G.print(
         "How dare he say such a thing? "
